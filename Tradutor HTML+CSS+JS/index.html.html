@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🌍 Mini Tradutor EN ↔ PT</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="claro">
+  <div class="container">
+    <header>
+      <h1>🌍 Mini Tradutor EN ↔ PT</h1>
+      <p>Traduza textos entre inglês e português</p>
+      <button type="button" id="temaBtn">🌙 Modo Escuro</button>
+    </header>
+
+    <main>
+      <textarea id="entrada" placeholder="Digite o texto aqui..."></textarea>
+
+      <div class="options">
+        <label>
+          <input type="radio" name="lang" value="en-pt" checked>
+          🇬🇧 Inglês → 🇧🇷 Português
+        </label>
+        <label>
+          <input type="radio" name="lang" value="pt-en">
+          🇧🇷 Português → 🇬🇧 Inglês
+        </label>
+      </div>
+
+      <button type="button" onclick="traduzir()">Traduzir</button>
+
+      <div id="resultado"></div>
+    </main>
+
+    <footer>
+      <p>
+        Feito por <strong>Guilherme Alexandre</strong> • HTML + CSS + JS • Usando 
+        <a href="https://libretranslate.com" target="_blank">LibreTranslate API</a>
+      </p>
+    </footer>
+  </div>
+
+  <script>
+    // Dicionário offline atualizado
+    const dicionarioOffline = {
+  "hello": "olá",
+  "goodbye": "adeus",
+  "please": "por favor",
+  "thank you": "obrigado",
+  "yes": "sim",
+  "no": "não",
+  "sorry": "desculpa",
+  "friend": "amigo",
+  "family": "família",
+  "love": "amor",
+  "food": "comida",
+  "water": "água",
+  "house": "casa",
+  "school": "escola",
+  "work": "trabalho",
+  "money": "dinheiro",
+  "day": "dia",
+  "night": "noite",
+  "time": "tempo",
+  "life": "vida",
+  "man": "homem",
+  "woman": "mulher",
+  "child": "criança",
+  "people": "pessoas",
+  "city": "cidade",
+  "country": "país",
+  "world": "mundo",
+  "book": "livro",
+  "pen": "caneta",
+  "paper": "papel",
+  "computer": "computador",
+  "phone": "telefone",
+  "car": "carro",
+  "bus": "ônibus",
+  "train": "trem",
+  "airplane": "avião",
+  "street": "rua",
+  "road": "estrada",
+  "shop": "loja",
+  "market": "mercado",
+  "hospital": "hospital",
+  "doctor": "médico",
+  "teacher": "professor",
+  "student": "aluno",
+  "mother": "mãe",
+  "father": "pai",
+  "brother": "irmão",
+  "sister": "irmã",
+  "childhood": "infância",
+  "morning": "manhã",
+  "afternoon": "tarde",
+  "evening": "anoitecer",
+  "tomorrow": "amanhã",
+  "yesterday": "ontem",
+  "today": "hoje",
+  "sun": "sol",
+  "moon": "lua",
+  "star": "estrela",
+  "sky": "céu",
+  "earth": "terra",
+  "fire": "fogo",
+  "waterfall": "cachoeira",
+  "mountain": "montanha",
+  "river": "rio",
+  "sea": "mar",
+  "ocean": "oceano",
+  "forest": "floresta",
+  "tree": "árvore",
+  "flower": "flor",
+  "dog": "cachorro",
+  "cat": "gato",
+  "bird": "pássaro",
+  "fish": "peixe",
+  "cow": "vaca",
+  "horse": "cavalo",
+  "milk": "leite",
+  "bread": "pão",
+  "rice": "arroz",
+  "meat": "carne",
+  "egg": "ovo",
+  "sugar": "açúcar",
+  "salt": "sal",
+  "coffee": "café",
+  "tea": "chá",
+  "beer": "cerveja",
+  "wine": "vinho",
+  "happy": "feliz",
+  "sad": "triste",
+  "angry": "zangado",
+  "tired": "cansado",
+  "beautiful": "bonito",
+  "big": "grande",
+  "small": "pequeno",
+  "hot": "quente",
+  "cold": "frio",
+  "new": "novo",
+  "old": "velho",
+  "good": "bom",
+  "bad": "ruim",
+  "Hi": "Oi", 
+  "Good Morning": "Bom dia",
+}
+
+
+    async function traduzir() {
+      const entrada = document.getElementById("entrada").value.trim();
+      const resultadoDiv = document.getElementById("resultado");
+      const langOption = document.querySelector("input[name='lang']:checked").value;
+
+      if (!entrada) {
+        resultadoDiv.innerHTML = "<p>Digite um texto para traduzir.</p>";
+        return;
+      }
+
+      resultadoDiv.innerHTML = "<p>⏳ Traduzindo...</p>";
+
+      const chave = entrada.toLowerCase();
+      if ((langOption === "en-pt" && dicionarioOffline[chave]) ||
+          (langOption === "pt-en" && Object.values(dicionarioOffline).includes(chave))) {
+        let traducao;
+        if (langOption === "en-pt") {
+          traducao = dicionarioOffline[chave];
+        } else {
+          traducao = Object.keys(dicionarioOffline).find(k => dicionarioOffline[k] === chave);
+        }
+
+        resultadoDiv.innerHTML = `
+          <div class="card">
+            <strong>Original:</strong><br> ${entrada}
+          </div>
+          <div class="card">
+            <strong>Tradução:</strong><br> ${traducao}
+          </div>
+        `;
+        return;
+      }
+
+      let source = "en";
+      let target = "pt";
+      if (langOption === "pt-en") {
+        source = "pt";
+        target = "en";
+      }
+
+      try {
+        const res = await fetch("https://libretranslate.de/translate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            q: entrada,
+            source,
+            target,
+            format: "text"
+          })
+        });
+
+        const data = await res.json();
+        resultadoDiv.innerHTML = `
+          <div class="card">
+            <strong>Original:</strong><br> ${entrada}
+          </div>
+          <div class="card">
+            <strong>Tradução:</strong><br> ${data.translatedText}
+          </div>
+        `;
+      } catch (e) {
+        resultadoDiv.innerHTML = "<p style='color:red'>❌ Erro ao traduzir. Tente novamente.</p>";
+        console.error(e);
+      }
+    }
+
+    // Alternar tema
+    const temaBtn = document.getElementById("temaBtn");
+    temaBtn.addEventListener("click", () => {
+      document.body.classList.toggle("escuro");
+      document.body.classList.toggle("claro");
+      if(document.body.classList.contains("escuro")){
+        temaBtn.textContent = "☀️ Modo Claro";
+      } else {
+        temaBtn.textContent = "🌙 Modo Escuro";
+      }
+    });
+  </script>
+</body>
+</html>
